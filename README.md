@@ -44,7 +44,7 @@ A Spring Boot application for managing and applying various types of coupons to 
 
 1. **Single Coupon Application**: The current implementation applies one coupon at a time
 2. **Coupon Stacking**: Multiple coupons cannot be combined in a single transaction
-3. **BxGy Complexity**: Complex BxGy scenarios like
+3. **BxGy Complexity**: Complex BxGy scenarios like\
    ***Scenario 1:*** Cross Products BxGy where Buy Products and Get Products are related dynamically
    ***Description:*** "Buy 2 items from the 'Electronics' category, get 1 item from the 'Accessories' category free—but only if the accessory is logically related (e.g., a laptop bag for a laptop, not a phone case for a TV)."
 
