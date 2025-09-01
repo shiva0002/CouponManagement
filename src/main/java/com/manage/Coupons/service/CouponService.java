@@ -75,11 +75,9 @@ public class CouponService {
     }
     
     public Cart applyCoupon(Long couponId, Cart cart) {
-        System.out.println("Applying coupon ID: " + couponId + " to cart: " + cart);
         Coupon coupon = couponRepository.findById(couponId)
             .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
         ApplicableCouponResponse applicability = checkCouponApplicability(coupon, cart);
-        System.out.println(applicability);
         if (applicability.getDiscountAmount() <= 0) {
             throw new CouponNotApplicable("Coupon not applicable: " + applicability.getMessage());
         }
@@ -90,13 +88,11 @@ public class CouponService {
     private ApplicableCouponResponse checkCouponApplicability(Coupon coupon, Cart cart) {
         ApplicableCouponResponse response = new ApplicableCouponResponse();
         response.setCoupon(convertToDTO(coupon));
-        System.out.println("Applicable Coupon Response : " + response);
         try {
             double discount = 0;
             String message = "Applicable";
             
             if (coupon instanceof CartWiseCoupon cartWise) {
-                System.out.println("Checking CartWiseCoupon");
                 discount = calculateCartWiseDiscount(cartWise, cart);
                 if (discount == 0) {
                     message = "Cart total doesn't meet minimum requirement";
@@ -265,14 +261,12 @@ public class CouponService {
         }
         
         for (CartItem item : cart.getItems()) {
-            System.out.println("Cart Item: " + item);
             if (coupon.getGetProducts().contains(item.getProductId()) && applicableTimes > 0) {
                 int freeItems = Math.min(item.getQuantity(), applicableTimes * coupon.getGetQuantity());
                 double itemDiscount = item.getPrice() * freeItems;
                 item.setDiscountedPrice((item.getPrice() * item.getQuantity() - itemDiscount) / item.getQuantity());
                 applicableTimes -= freeItems / coupon.getGetQuantity();
             }
-            System.out.println("Updated Cart Item: " + item);
         }
         
         cart.setTotalAmount(cart.getItems().stream()
