@@ -44,7 +44,28 @@ A Spring Boot application for managing and applying various types of coupons to 
 
 1. **Single Coupon Application**: The current implementation applies one coupon at a time
 2. **Coupon Stacking**: Multiple coupons cannot be combined in a single transaction
-3. **BxGy Complexity**: Complex BxGy scenarios with multiple product combinations have limited testing
+3. **BxGy Complexity**: Complex BxGy scenarios like
+   ***Scenario 1:*** Cross Products BxGy where Buy Products and Get Products are related dynamically
+   ***Description:*** "Buy 2 items from the 'Electronics' category, get 1 item from the 'Accessories' category free—but only if the accessory is logically related (e.g., a laptop bag for a laptop, not a phone case for a TV)."
+
+   ***Difficult to Implement:***
+   1.Need to find the relation between buy product and get product dynamically like during purchase
+   2.For every item in buy product we need to check in the cart whether any related accessory is present.
+
+   ***Scenario 2:*** Increasing Discounts with More you Buy
+   ***Description:*** "Buy 2, get 1 free. Buy 4, get 2 free and a 10% discount on the next 'get' product. Buy 6 from the 'buy' set, get 3 free, the 4th 'get' product at 50% off, and a Rs. 100 coupon for your next purchase."
+
+   ***Difficult to implement:***
+   1.We could have multiple discounts being applied to the same 'get' product.
+   Example : A single "get" product might be free, while another might have a percentage discount, and the cart might also generate a future credit. Applying these different discount types simultaneously within the same coupon rule violates the principle of simple, composable discount units.
+   
+   ***Scenario 3:*** BxGy with time based and sequential purchasing of items
+   ***Description:*** "Buy 2 glass lenses and get 1 spec frame free. You will get 10% off on sunglasses if purchased within next 10 days."
+
+   ***Difficult to implement:***
+   1.The system must remember a user's cart state across multiple, separate transactions and days. This requires persisting a complex state (e.g., user_123 has purchased X, coupon_ABC is now in 'pending Y' state).
+   2.The discount engine must now be aware of time, checking purchase history timestamps to validate the sequence. This moves discount calculation from a simple cart analysis to a complex historical data query.
+
 4. **Performance**: Large cart sizes might impact performance due to complex calculations
 5. **Currency**: No multi-currency support
 
