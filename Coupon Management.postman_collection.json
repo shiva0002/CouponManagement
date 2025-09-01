@@ -1,0 +1,273 @@
+{
+	"info": {
+		"_postman_id": "b8cf0d2a-2cda-4298-a7c9-fc68a86b2cb9",
+		"name": "Coupon Management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27555845"
+	},
+	"item": [
+		{
+			"name": "Cart Wise Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"10% Off on Orders Over 1000\",\n  \"code\": \"CART10\",\n  \"type\": \"CART_WISE\",\n  \"description\": \"Get 10% off on orders above Rs. 1000\",\n  \"validFrom\": \"2025-09-01T00:00:00\",\n  \"validTo\": \"2025-09-30T23:59:59\",\n  \"active\": true,\n  \"minCartAmount\": 1000.0,\n  \"discountPercentage\": 10.0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/coupons",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Product Wise Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"20% Off on Electronics\",\n  \"code\": \"ELEC20\",\n  \"type\": \"PRODUCT_WISE\",\n  \"description\": \"20% discount on all electronic products\",\n  \"validFrom\": \"2025-09-01T00:00:00\",\n  \"validTo\": \"2025-09-30T23:59:59\",\n  \"active\": true,\n  \"applicableProducts\": [\"P001\", \"P002\", \"P003\"],\n  \"discountPercentage\": 20.0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/coupons",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "BxGx Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Buy 2 Get 1 Free\",\n  \"code\": \"B2G1\",\n  \"type\": \"BXGY\",\n  \"description\": \"Buy 2 products from selected range, get 1 free\",\n  \"validFrom\": \"2025-09-01T00:00:00\",\n  \"validTo\": \"2025-09-30T23:59:59\",\n  \"active\": true,\n  \"buyProducts\": [\"P002\"],\n  \"buyQuantity\": 2,\n  \"getProducts\": [\"P001\"],\n  \"getQuantity\": 1,\n  \"repetitionLimit\": 2\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/coupons",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Coupons",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/coupons",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Specific Coupon",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/coupons/3",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons",
+						"3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Coupon",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"15% Off on Orders Over 100\",\n  \"description\": \"Get 15% off on orders above Rs. 100 (Updated)\",\n  \"validTo\": \"2025-10-31T23:59:59\",\n  \"active\": true,\n  \"minCartAmount\": 100.0,\n  \"discountPercentage\": 15.0\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/coupons/1",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Coupon",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/api/coupons/1",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Apply Coupon to Cart",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"cartId\": \"cart-123\",\n  \"items\": [\n    {\n      \"productId\": \"P001\",\n      \"productName\": \"Pendrive\",\n      \"price\": 250.0,\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"P002\",\n      \"productName\": \"Earphones\",\n      \"price\": 500.0,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"P003\",\n      \"productName\": \"Headphones\",\n      \"price\": 1500.0,\n      \"quantity\": 1\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/coupons/apply-coupon/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"coupons",
+						"apply-coupon",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Apply Coupon to Products",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"cartId\": \"cart-123\",\n  \"items\": [\n    {\n      \"productId\": \"P001\",\n      \"productName\": \"Pendrive\",\n      \"price\": 250.0,\n      \"quantity\": 1\n    },\n    {\n      \"productId\": \"P002\",\n      \"productName\": \"Earphones\",\n      \"price\": 500.0,\n      \"quantity\": 2\n    },\n    {\n      \"productId\": \"P003\",\n      \"productName\": \"Headphones\",\n      \"price\": 1500.0,\n      \"quantity\": 1\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/coupons/apply-coupon/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"coupons",
+						"apply-coupon",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buy X Get Y Coupon",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "// {\n//   \"cartId\": \"cart-123\",\n//   \"items\": [\n//     {\n//       \"productId\": \"P001\",\n//       \"productName\": \"Pendrive\",\n//       \"price\": 250.0,\n//       \"quantity\": 1\n//     },\n//     {\n//       \"productId\": \"P002\",\n//       \"productName\": \"Earphones\",\n//       \"price\": 500.0,\n//       \"quantity\": 2\n//     },\n//     {\n//       \"productId\": \"P003\",\n//       \"productName\": \"Headphones\",\n//       \"price\": 1500.0,\n//       \"quantity\": 1\n//     }\n//   ]\n// }\n\n{\n  \"cartId\": \"cart-123\",\n  \"items\": [\n    {\n      \"productId\": \"P001\",\n      \"productName\": \"Pen\",\n      \"price\": 10.0,\n      \"quantity\": 4\n    },\n    {\n      \"productId\": \"P002\",\n      \"productName\": \"Notebook\",\n      \"price\": 30.0,\n      \"quantity\": 8\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/api/coupons/apply-coupon/1",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"api",
+						"coupons",
+						"apply-coupon",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
