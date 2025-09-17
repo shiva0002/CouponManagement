@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.manage.Coupons.dto.ApplicableCouponResponse;
 import com.manage.Coupons.dto.CouponDTO;
+import com.manage.Coupons.exception.ConstraintViolationException;
 import com.manage.Coupons.exception.CouponNotApplicable;
 import com.manage.Coupons.exception.CouponNotFoundException;
 import com.manage.Coupons.model.BxGyCoupon;
@@ -31,21 +32,26 @@ public class CouponService {
         return couponRepository.findAll();
     }
     
-    public Optional<Coupon> getCouponById(Long id) {
-        return couponRepository.findById(id);
+    public Coupon getCouponById(Long id) {
+        return couponRepository.findById(id)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + id + " Not Found"));
     }
     
     public Coupon createCoupon(Coupon coupon) {
         if (couponRepository.existsByCode(coupon.getCode())) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
-        return couponRepository.save(coupon);
+        try{
+            return couponRepository.save(coupon);
+        } catch (Exception e){
+            throw new ConstraintViolationException("Could not save to Database");
+        }
     }
     
     public Coupon updateCoupon(Long id, Coupon couponDetails) {
         Coupon coupon = couponRepository.findById(id)
-            .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
-        
+            .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + id + " Not Found"));
+        System.out.println(coupon);
         // Update fields
         coupon.setName(couponDetails.getName());
         coupon.setDescription(couponDetails.getDescription());
@@ -57,6 +63,8 @@ public class CouponService {
     }
     
     public void deleteCoupon(Long id) {
+        couponRepository.findById(id)
+            .orElseThrow(() -> new CouponNotFoundException("No Coupon with id " + id + " found to delete"));
         couponRepository.deleteById(id);
     }
     
@@ -66,7 +74,7 @@ public class CouponService {
         
         for (Coupon coupon : activeCoupons) {
             ApplicableCouponResponse response = checkCouponApplicability(coupon, cart);
-            if (response.getDiscountAmount() > 0) {
+            if (response.getIsCouponApplicable()) {
                 applicableCoupons.add(response);
             }
         }
@@ -76,9 +84,9 @@ public class CouponService {
     
     public Cart applyCoupon(Long couponId, Cart cart) {
         Coupon coupon = couponRepository.findById(couponId)
-            .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+            .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + couponId + " Not Found"));
         ApplicableCouponResponse applicability = checkCouponApplicability(coupon, cart);
-        if (applicability.getDiscountAmount() <= 0) {
+        if (!applicability.getIsCouponApplicable()) {
             throw new CouponNotApplicable("Coupon not applicable: " + applicability.getMessage());
         }
         
@@ -89,110 +97,73 @@ public class CouponService {
         ApplicableCouponResponse response = new ApplicableCouponResponse();
         response.setCoupon(convertToDTO(coupon));
         try {
-            double discount = 0;
+            boolean discount = false;
             String message = "Applicable";
+            Boolean isCouponApplicable = true;
             
             if (coupon instanceof CartWiseCoupon cartWise) {
-                discount = calculateCartWiseDiscount(cartWise, cart);
-                if (discount == 0) {
+                discount = isCartWiseDiscountValid(cartWise, cart);
+                if (!discount) {
                     message = "Cart total doesn't meet minimum requirement";
+                    isCouponApplicable = false;
                 }
             } else if (coupon instanceof ProductWiseCoupon productWise) {
-                discount = calculateProductWiseDiscount(productWise, cart);
-                if (discount == 0) {
+                discount = isProductWiseDiscountValid(productWise, cart);
+                if (!discount) {
                     message = "No applicable products in cart";
+                    isCouponApplicable = false;
                 }
             } else if (coupon instanceof BxGyCoupon bxgy) {
-                discount = calculateBxGyDiscount(bxgy, cart);
-                if (discount == 0) {
+                discount = isBxGyDiscountValid(bxgy, cart);
+                if (!discount) {
                     message = "Buy conditions not met";
+                    isCouponApplicable = false;
                 }
             }
-            
-            response.setDiscountAmount(discount);
             response.setMessage(message);
+            response.setIsCouponApplicable(isCouponApplicable);
             
         } catch (Exception e) {
-            response.setDiscountAmount(0.0);
             response.setMessage("Error checking applicability: " + e.getMessage());
+            response.setIsCouponApplicable(false);
         }
         
         return response;
     }
     
-    private double calculateCartWiseDiscount(CartWiseCoupon coupon, Cart cart) {
+    private boolean isCartWiseDiscountValid(CartWiseCoupon coupon, Cart cart) {
         if (cart.getTotalAmount() < coupon.getMinCartAmount()) {
-            return 0;
+            return false;
         }
-        
-        if (coupon.getDiscountPercentage() != null) {
-            return cart.getTotalAmount() * (coupon.getDiscountPercentage() / 100);
-        } else if (coupon.getFixedDiscount() != null) {
-            return Math.min(coupon.getFixedDiscount(), cart.getTotalAmount());
-        }
-        
-        return 0;
+
+        return true;
     }
     
-    private double calculateProductWiseDiscount(ProductWiseCoupon coupon, Cart cart) {
-        double totalDiscount = 0;
-        
+    private boolean isProductWiseDiscountValid(ProductWiseCoupon coupon, Cart cart) {
+        int countProducts = 0;
         for (CartItem item : cart.getItems()) {
             if (coupon.getApplicableProducts().contains(item.getProductId())) {
-                if (coupon.getDiscountPercentage() != null) {
-                    totalDiscount += item.getPrice() * item.getQuantity() * (coupon.getDiscountPercentage() / 100);
-                } else if (coupon.getFixedDiscount() != null) {
-                    totalDiscount += coupon.getFixedDiscount() * item.getQuantity();
-                }
+                countProducts += item.getQuantity();
             }
         }
         
-        return totalDiscount;
+        if(countProducts > 0) return true;
+
+        return false;
     }
     
-    private double calculateBxGyDiscount(BxGyCoupon coupon, Cart cart) {
+    private boolean isBxGyDiscountValid(BxGyCoupon coupon, Cart cart) {
         // Count total buy products in cart
         long totalBuyProducts = cart.getItems().stream()
             .filter(item -> coupon.getBuyProducts().contains(item.getProductId()))
             .mapToInt(CartItem::getQuantity)
             .sum();
         
-        // Count total get products in cart
-        long totalGetProducts = cart.getItems().stream()
-            .filter(item -> coupon.getGetProducts().contains(item.getProductId()))
-            .mapToInt(CartItem::getQuantity)
-            .sum();
-        
-        // Calculate how many times the coupon can be applied
-        int applicableTimes = (int) Math.min(
-            totalBuyProducts / coupon.getBuyQuantity(),
-            coupon.getRepetitionLimit()
-        );
-        
-        // Calculate potential free items value
-        double freeItemsValue = 0;
-        for (CartItem item : cart.getItems()) {
-            if (coupon.getGetProducts().contains(item.getProductId())) {
-                freeItemsValue += item.getPrice();
-            }
-        }
-        
-        // Return the maximum discount that can be applied
-        return Math.min(freeItemsValue, applicableTimes * getAverageGetProductPrice(cart, coupon));
-    }
-    
-    private double getAverageGetProductPrice(Cart cart, BxGyCoupon coupon) {
-        double totalPrice = 0;
-        int count = 0;
-        
-        for (CartItem item : cart.getItems()) {
-            if (coupon.getGetProducts().contains(item.getProductId())) {
-                totalPrice += item.getPrice() * item.getQuantity();
-                count += item.getQuantity();
-            }
-        }
-        
-        return count > 0 ? totalPrice / count : 0;
+        boolean isApplicable = false;
+
+        if(totalBuyProducts >= coupon.getBuyQuantity()) isApplicable = true;
+
+        return isApplicable;
     }
     
     private Cart applyCouponToCart(Coupon coupon, Cart cart) {
@@ -213,7 +184,16 @@ public class CouponService {
     }
     
     private void applyCartWiseCoupon(CartWiseCoupon coupon, Cart cart) {
-        double discount = calculateCartWiseDiscount(coupon, cart);
+        double discount = 0;
+
+        if (coupon.getDiscountPercentage() != null) {
+            discount = cart.getTotalAmount() * (coupon.getDiscountPercentage() / 100);
+        } 
+        
+        if (coupon.getFixedDiscount() != null) {
+            discount = Math.min(coupon.getFixedDiscount(), cart.getTotalAmount());
+        }
+
         double discountPerItem = discount / cart.getTotalAmount();
         
         for (CartItem item : cart.getItems()) {
@@ -259,13 +239,35 @@ public class CouponService {
         if (applicableTimes <= 0) {
             return;
         }
+        // Fix: if Item 1 is less than get Quantity
+        // for (CartItem item : cart.getItems()) {
+        //     if (coupon.getGetProducts().contains(item.getProductId()) && applicableTimes > 0) {
+        //         int freeItems = Math.min(item.getQuantity(), applicableTimes * coupon.getGetQuantity());
+        //         double itemDiscount = item.getPrice() * freeItems;
+        //         item.setDiscountedPrice((item.getPrice() * item.getQuantity() - itemDiscount) / item.getQuantity());
+        //         applicableTimes -= freeItems >= coupon.getGetQuantity() ? freeItems / coupon.getGetQuantity() : freeItems;
+        //     }
+        // }
         
-        for (CartItem item : cart.getItems()) {
-            if (coupon.getGetProducts().contains(item.getProductId()) && applicableTimes > 0) {
-                int freeItems = Math.min(item.getQuantity(), applicableTimes * coupon.getGetQuantity());
-                double itemDiscount = item.getPrice() * freeItems;
-                item.setDiscountedPrice((item.getPrice() * item.getQuantity() - itemDiscount) / item.getQuantity());
-                applicableTimes -= freeItems / coupon.getGetQuantity();
+        // Find totalFreeItems
+        int totalFreeItems = applicableTimes * coupon.getGetQuantity();
+        
+        // Find total Get Products in the cart
+        int totalGetProducts = cart.getItems().stream()
+            .filter(item -> coupon.getGetProducts().contains(item.getProductId()))
+            .mapToInt(CartItem::getQuantity)
+            .sum();
+        
+        // Find total items to pay for
+        int totalPayItems = totalFreeItems >= totalGetProducts ? 0 : totalGetProducts - totalFreeItems;
+
+        // Find the discount price for each item after amount has been paid for payable items 
+        for(CartItem item: cart.getItems()){
+            if(coupon.getGetProducts().contains(item.getProductId()) && totalPayItems >=0 ){
+                int payableItemsCount = Math.min(item.getQuantity(),totalPayItems);
+                double payablePrice = payableItemsCount * item.getPrice();
+                item.setDiscountedPrice(payablePrice/item.getQuantity());
+                totalPayItems -= payableItemsCount;
             }
         }
         
@@ -306,5 +308,11 @@ public class CouponService {
             couponDTO.setRepetitionLimit(bxgy.getRepetitionLimit());
         }
         return couponDTO;
+    }
+
+    public List<Coupon> getActiveCoupons(){
+        List<Coupon> activeCoupons = couponRepository.findActiveCoupons(LocalDateTime.now());
+
+        return activeCoupons;
     }
 }
