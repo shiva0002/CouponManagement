@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.manage.Coupons.dto.ApplicableCouponResponse;
 import com.manage.Coupons.dto.CouponDTO;
+import com.manage.Coupons.exception.ConstraintViolationException;
 import com.manage.Coupons.exception.CouponNotApplicable;
 import com.manage.Coupons.exception.CouponNotFoundException;
 import com.manage.Coupons.model.BxGyCoupon;
@@ -31,21 +32,26 @@ public class CouponService {
         return couponRepository.findAll();
     }
     
-    public Optional<Coupon> getCouponById(Long id) {
-        return couponRepository.findById(id);
+    public Coupon getCouponById(Long id) {
+        return couponRepository.findById(id)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + id + " Not Found"));
     }
     
     public Coupon createCoupon(Coupon coupon) {
         if (couponRepository.existsByCode(coupon.getCode())) {
             throw new IllegalArgumentException("Coupon code already exists");
         }
-        return couponRepository.save(coupon);
+        try{
+            return couponRepository.save(coupon);
+        } catch (Exception e){
+            throw new ConstraintViolationException("Could not save to Database");
+        }
     }
     
     public Coupon updateCoupon(Long id, Coupon couponDetails) {
         Coupon coupon = couponRepository.findById(id)
-            .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
-        
+            .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + id + " Not Found"));
+        System.out.println(coupon);
         // Update fields
         coupon.setName(couponDetails.getName());
         coupon.setDescription(couponDetails.getDescription());
@@ -57,6 +63,8 @@ public class CouponService {
     }
     
     public void deleteCoupon(Long id) {
+        couponRepository.findById(id)
+            .orElseThrow(() -> new CouponNotFoundException("No Coupon with id " + id + " found to delete"));
         couponRepository.deleteById(id);
     }
     
@@ -76,7 +84,7 @@ public class CouponService {
     
     public Cart applyCoupon(Long couponId, Cart cart) {
         Coupon coupon = couponRepository.findById(couponId)
-            .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+            .orElseThrow(() -> new CouponNotFoundException("Coupon with Id " + couponId + " Not Found"));
         ApplicableCouponResponse applicability = checkCouponApplicability(coupon, cart);
         if (!applicability.getIsCouponApplicable()) {
             throw new CouponNotApplicable("Coupon not applicable: " + applicability.getMessage());
