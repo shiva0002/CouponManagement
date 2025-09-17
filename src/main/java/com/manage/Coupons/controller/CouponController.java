@@ -27,9 +27,13 @@ public class CouponController {
     private CouponService couponService;
     
     @PostMapping
-    public ResponseEntity<Coupon> createCoupon(@Valid @RequestBody Coupon coupon) {
-        Coupon createdCoupon = couponService.createCoupon(coupon);
-        return ResponseEntity.ok(createdCoupon);
+    public ResponseEntity<Object> createCoupon(@Valid @RequestBody Coupon coupon) {
+        try{
+            Coupon createdCoupon = couponService.createCoupon(coupon);
+            return ResponseEntity.ok(createdCoupon);
+        } catch(Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     
     @GetMapping
@@ -82,7 +86,7 @@ public class CouponController {
             
             Cart updatedCart = couponService.applyCoupon(id, cart);
             return ResponseEntity.ok(updatedCart);
-        } catch (Exception e) {
+        } catch (Exception e) { // Global Exception Handling
             if(e instanceof CouponNotFoundException){
                 log.info("Coupon not found: " + e.getMessage());
                 return ResponseEntity.status(HttpStatusCode.valueOf(404)).body(e.getMessage());
@@ -91,5 +95,11 @@ public class CouponController {
                 return ResponseEntity.status(HttpStatusCode.valueOf(400)).body(e.getMessage());
             }
         }
+    }
+
+    @GetMapping("/active-coupons")
+    public ResponseEntity<List<Coupon>> getActiveCoupons(){
+        List<Coupon> activeCoupons = couponService.getActiveCoupons();
+        return ResponseEntity.ok().body(activeCoupons);
     }
 }
