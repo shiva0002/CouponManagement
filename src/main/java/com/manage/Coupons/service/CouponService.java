@@ -19,8 +19,6 @@ import com.manage.Coupons.repository.CouponRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CouponService {
@@ -287,7 +285,6 @@ public class CouponService {
         couponDTO.setId(coupon.getId());
         couponDTO.setName(coupon.getName());
         couponDTO.setCode(coupon.getCode());
-        couponDTO.setType(coupon.getType());
         couponDTO.setDescription(coupon.getDescription());
         couponDTO.setValidFrom(coupon.getValidFrom());
         couponDTO.setValidTo(coupon.getValidTo());
@@ -314,5 +311,10 @@ public class CouponService {
         List<Coupon> activeCoupons = couponRepository.findActiveCoupons(LocalDateTime.now());
 
         return activeCoupons;
+    }
+
+    public List<Coupon> getCoupon(String type){
+        List<Coupon> coupon = couponRepository.findByType(type);
+        return coupon;
     }
 }

@@ -3,7 +3,6 @@ package com.manage.Coupons.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.manage.Coupons.model.CouponType;
 
 import lombok.Data;
 
@@ -12,7 +11,6 @@ public class CouponDTO {
     private Long id;
     private String name;
     private String code;
-    private CouponType type;
     private String description;
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
