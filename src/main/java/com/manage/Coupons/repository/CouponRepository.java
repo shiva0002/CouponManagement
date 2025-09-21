@@ -17,7 +17,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
            "(:currentTime BETWEEN c.validFrom AND c.validTo OR c.validFrom IS NULL)")
     List<Coupon> findActiveCoupons(@Param("currentTime") LocalDateTime currentTime);
     
-    List<Coupon> findByType(String type);
+    @Query(value = "SELECT * FROM Coupons WHERE coupon_type = :type",nativeQuery = true)
+    List<Coupon> findByType(@Param("type") String type);
     
     boolean existsByCode(String code);
 }

@@ -35,9 +35,6 @@ public abstract class Coupon {
     @NotBlank
     private String code;
     
-    @Enumerated(EnumType.STRING)
-    private CouponType type;
-    
     private String description;
     
     private LocalDateTime validFrom;
@@ -45,9 +42,6 @@ public abstract class Coupon {
     private LocalDateTime validTo;
     
     private boolean active = true;
-    
-    @Column(name = "coupon_type", insertable = false, updatable = false)
-    private String couponType;
     
 }
 

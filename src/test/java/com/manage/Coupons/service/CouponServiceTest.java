@@ -9,10 +9,8 @@ import com.manage.Coupons.model.Cart;
 import com.manage.Coupons.model.CartItem;
 import com.manage.Coupons.model.CartWiseCoupon;
 import com.manage.Coupons.model.Coupon;
-import com.manage.Coupons.model.CouponType;
 import com.manage.Coupons.model.ProductWiseCoupon;
 import com.manage.Coupons.repository.CouponRepository;
-import com.manage.Coupons.service.CouponService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -139,12 +137,7 @@ class CouponServiceTest {
     @Test
     void deleteCoupon_WhenCouponExists_ShouldDeleteSuccessfully() {
         // Arrange
-        Coupon mockCoupon = new Coupon() {
-            @Override
-            public CouponType getType() {
-                return CouponType.CART_WISE;
-            }
-        };
+        CartWiseCoupon mockCoupon = new CartWiseCoupon();
         mockCoupon.setId(1L);
 
         when(couponRepository.findById(1L))
@@ -186,7 +179,6 @@ class CouponServiceTest {
         coupon.setId(1L);
         coupon.setCode("CODE1");
         coupon.setName("CartWise");
-        coupon.setType(CouponType.CART_WISE);
         coupon.setDescription("desc");
         coupon.setValidFrom(LocalDateTime.now().minusDays(1));
         coupon.setValidTo(LocalDateTime.now().plusDays(1));
@@ -242,7 +234,6 @@ class CouponServiceTest {
         coupon.setId(1L);
         coupon.setName("CartWise");
         coupon.setCode("CODE1");
-        coupon.setType(CouponType.CART_WISE);
         coupon.setDescription("desc");
         coupon.setValidFrom(LocalDateTime.now());
         coupon.setValidTo(LocalDateTime.now().plusDays(1));
@@ -268,7 +259,6 @@ class CouponServiceTest {
         coupon.setId(2L);
         coupon.setName("ProductWise");
         coupon.setCode("CODE2");
-        coupon.setType(CouponType.PRODUCT_WISE);
         coupon.setDescription("desc");
         coupon.setValidFrom(LocalDateTime.now());
         coupon.setValidTo(LocalDateTime.now().plusDays(1));
@@ -294,7 +284,6 @@ class CouponServiceTest {
         coupon.setId(3L);
         coupon.setName("BxGy");
         coupon.setCode("CODE3");
-        coupon.setType(CouponType.BXGY);
         coupon.setDescription("desc");
         coupon.setValidFrom(LocalDateTime.now());
         coupon.setValidTo(LocalDateTime.now().plusDays(1));
